@@ -1,0 +1,533 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Daily Task Tracker</title>
+    <style>
+      :root {
+        --primary: #1e88e5;
+        --primary-hover: #1565c0;
+        --bg-color: #f4f6f9;
+        --card-bg: #ffffff;
+        --text-color: #333333;
+        --text-muted: #888888;
+        --border-color: #e0e0e0;
+        --danger: #ff5252;
+        --shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+
+      body {
+        background-color: grey;
+        color: var(--text-color);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        padding: 20px;
+      }
+
+      .container {
+        background: var(--card-bg);
+        width: 100%;
+        max-width: 520px;
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: var(--shadow);
+      }
+
+      header {
+        margin-bottom: 20px;
+        text-align: center;
+      }
+
+      header h1 {
+        font-size: 1.6rem;
+        color: #2c3e50;
+        margin-bottom: 4px;
+      }
+
+      header p {
+        font-size: 0.9rem;
+        color: var(--text-muted);
+      }
+
+      /* Input Controls */
+      .task-form {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+      #clearing {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 10px;
+      }
+      #clearing button {
+        padding: 8px 16px;
+        background-color: red;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: background-color 0.2s;
+        align-items: center;
+        justify-content: center;
+      }
+
+      #clearing button:hover {
+        background-color: tomato;
+      }
+
+      .input-row {
+        display: flex;
+        gap: 10px;
+      }
+
+      input[type="text"],
+      select {
+        padding: 11px 14px;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        outline: none;
+        font-size: 14px;
+        transition: border-color 0.2s;
+      }
+
+      input[type="text"] {
+        flex: 1;
+      }
+
+      input[type="text"]:focus,
+      select:focus {
+        border-color: var(--primary);
+      }
+
+      .add-btn {
+        padding: 11px 20px;
+        background-color: var(--primary);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: background-color 0.2s;
+      }
+
+      .add-btn:hover {
+        background-color: var(--primary-hover);
+      }
+
+      /* Filter Tabs */
+      .filters {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 16px;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 10px;
+      }
+
+      .filter-btn {
+        background: none;
+        border: none;
+        padding: 6px 12px;
+        font-size: 13px;
+        color: var(--text-muted);
+        cursor: pointer;
+        border-radius: 6px;
+        font-weight: 500;
+      }
+
+      .filter-btn.active {
+        background-color: #e3f2fd;
+        color: var(--primary);
+        font-weight: bold;
+      }
+
+      /* Task List Styling */
+      .task-list-section {
+        margin-top: 10px;
+        max-height: 380px;
+        overflow-y: auto;
+      }
+
+      .task-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .task-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background-color: #f9f9f9;
+        padding: 12px 16px;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        transition: all 0.2s ease;
+      }
+
+      .task-content {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex: 1;
+        overflow: hidden;
+      }
+
+      .task-checkbox {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+        accent-color: var(--primary);
+      }
+
+      .task-text {
+        font-size: 15px;
+        color: var(--text-color);
+        transition:
+          color 0.2s,
+          text-decoration 0.2s;
+        word-break: break-word;
+      }
+
+      /* Completed Task State */
+      .task-item.completed {
+        background-color: #f0f0f0;
+        opacity: 0.7;
+      }
+
+      .task-item.completed .task-text {
+        text-decoration: line-through;
+        color: var(--text-muted);
+      }
+
+      /* Badges & Metadata */
+      .task-meta {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        margin-left: 10px;
+      }
+
+      .badge {
+        font-size: 11px;
+        font-weight: bold;
+        padding: 3px 8px;
+        border-radius: 12px;
+        text-transform: uppercase;
+        white-space: nowrap;
+      }
+      .badge-category {
+        background-color: #e3f2fd;
+        color: var(--primary);
+      }
+
+      .badge-priority {
+        background-color: #fff3e0;
+        color: #f57c00;
+      }
+
+      .badge-priority.high {
+        background-color: #ffebee;
+        color: #d32f2f;
+      }
+
+      .badge-priority.low {
+        background-color: #e8f5e9;
+        color: #388e3c;
+      }
+
+      .delete-btn {
+        background: none;
+        border: none;
+        color: var(--danger);
+        cursor: pointer;
+        font-size: 16px;
+        padding: 4px;
+        border-radius: 4px;
+        transition: transform 0.1s;
+      }
+
+      .delete-btn:hover {
+        transform: scale(1.2);
+      }
+
+      .empty-state {
+        text-align: center;
+        padding: 30px;
+        color: var(--text-muted);
+        font-size: 14px;
+      }
+
+      .stats {
+        margin-top: 20px;
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .clear-btn {
+        background: none;
+        border: none;
+        color: var(--danger);
+        cursor: pointer;
+        font-size: 12px;
+        text-decoration: underline;
+      }
+      .clear-act {
+        background: none;
+        border: none;
+        color: var(--danger);
+        cursor: pointer;
+        font-size: 12px;
+        text-decoration: underline;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>Daily Task Tracker</h1>
+        <p>Stay organized and complete your goals</p>
+      </header>
+
+      <!-- Task Form -->
+      <div class="task-form">
+        <div class="input-row">
+          <input
+            type="text"
+            id="taskInput"
+            placeholder="Add a new task..."
+            autofocus
+          />
+          <button class="add-btn" onclick="addTask()">Add</button>
+        </div>
+        <div class="input-row">
+          <select id="categoryInput">
+            <option value="General">General</option>
+            <option value="Work">Work</option>
+            <option value="Study">Study</option>
+            <option value="Health">Health</option>
+            <option value="Personal">Personal</option>
+          </select>
+          <select id="priorityInput">
+            <option value="Low">Low Priority</option>
+            <option value="Medium" selected>Medium Priority</option>
+            <option value="High">High Priority</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Filter Buttons -->
+      <!-- this is used for the the filtering function -->
+      <div class="filters">
+        <button class="filter-btn active" onclick="setFilter('all', this)">
+          All
+        </button>
+        <button class="filter-btn" onclick="setFilter('active', this)">
+          Active
+        </button>
+        <button class="filter-btn" onclick="setFilter('completed', this)">
+          Completed
+        </button>
+      </div>
+
+      <!-- Task List -->
+      <!-- this is used to store data for the html( we recall it so that we could store the data in the ul) -->
+      <div class="task-list-section">
+        <ul id="taskList" class="task-list"></ul>
+      </div>
+
+      <!-- Stats Footer -->
+      <div class="stats">
+        <span id="taskStats">0 / 0 completed</span>
+        <button class="clear-btn" onclick="clearCompleted()">
+          Clear Completed
+        </button>
+        <button class="clear-act" onclick="clearActive()">Clear Active</button>
+      </div>
+      <div id="clearing">
+        <br />
+        <button onclick="clearAll()">Clear all</button>
+      </div>
+    </div>
+
+    <script>
+      //declare what all the user can see.
+      let currentFilter = "all";
+
+      // Load saved tasks from LocalStorage or initialize defaults
+      // then json is used for storing data, and the prase(localstorage ) is used to store data into json(javascript) and the || is just a list to give to the javascript when opened so that java isnt confued.
+      let tasks = JSON.parse(localStorage.getItem("dailyTasksList")) || [
+        {
+          id: 1,
+          text: "Complete project report",
+          category: "Work",
+          priority: "High",
+          completed: false,
+        },
+        {
+          id: 2,
+          text: "Morning workout",
+          category: "Health",
+          priority: "Medium",
+          completed: true,
+        },
+      ];
+
+      //the is rederTasks is just a name, and the code below it is the functionality of the rendortasks,
+      function renderTasks() {
+        const list = document.getElementById("taskList");
+        //this is used to wipe the data in the ul before running
+        list.innerHTML = "";
+
+        const filteredTasks = tasks.filter((task) => {
+          if (currentFilter === "active") return !task.completed;
+          if (currentFilter === "completed") return task.completed;
+          return true;
+          //the return true is used forthe all function so that the all function can display oth active and completyed.
+        });
+        //this is used to print something if the task == 0, similar to c++ and python
+        if (filteredTasks.length === 0) {
+          list.innerHTML = `<div class="empty-state">No tasks found.</div>`;
+        } else {
+          //for each is a built in javascript that we all can use(it is also used for adding something to each filter(aka types))
+          //task is  the data that you've entered
+          filteredTasks.forEach((task) => {
+            //declaring / creating a list
+            const li = document.createElement("li");
+            //gives the item a class name, the task complete represents the statues of the item taht have been added( is it compete or not), teh $ iss used to tell that the next thing that is coming is going to be a filling text or a checkbox
+            li.className = `task-item ${task.completed ? "completed" : ""}`;
+            //forces the letter to become  lower
+            const priorityClass = task.priority.toLowerCase();
+            // this function is used to edit or style out the function of the daily taskt that will be outputted,the escape function is used to protect the dev from tricky commands
+            li.innerHTML = `
+                    <div class="task-content">
+                        <input type="checkbox" class="task-checkbox" ${task.completed ? "checked" : ""} onchange="toggleTask(${task.id})">
+                        
+                        <span class="task-text">${escapeHtml(task.text)}</span>
+                    </div>
+                    <div class="task-meta">
+                        <span class="badge badge-category">${escapeHtml(task.category)}</span>
+                        <span class="badge badge-priority ${priorityClass}">${escapeHtml(task.priority)}</span>
+                        <button class="delete-btn" onclick="deleteTask(${task.id})" title="Delete Task">&times;</button>
+                    </div>
+                `;
+            // used to add futhermore task to the list, the append is the one that is doing the job
+            list.appendChild(li);
+          });
+        }
+        //the update stat is used to display the amount of task that is happening in th(active completed) and the savetask is used to save the data to your local storage
+        updateStats();
+        saveTasks();
+      }
+
+      function addTask() {
+        //this is used to work the add button when the user presses the add button
+        const input = document.getElementById("taskInput");
+        //this is used to choose the category
+        const category = document.getElementById("categoryInput").value;
+        //this used to choose the proority
+        const priority = document.getElementById("priorityInput").value;
+        // used to input the text that the user inputted , and clean is useed to clean out error word( spacing before writiing)
+        const text = input.value.trim();
+
+        if (text !== "") {
+          tasks.push({
+            id: Date.now(),
+            text: text,
+            category: category,
+            priority: priority,
+            completed: false,
+          });
+          input.value = "";
+          renderTasks();
+        }
+      }
+      //this function is used make new text so that the user can input another one 
+      function toggleTask(id) {
+        tasks = tasks.map((task) => {
+          //this used to clarify the id to align it with the correct one
+          if (task.id === id) {
+            return { ...task, completed: !task.completed };
+          }
+          return task;
+        });
+        renderTasks();
+      }
+
+      function deleteTask(id) {
+        tasks = tasks.filter((task) => task.id !== id);
+        renderTasks();
+      }
+
+      function clearCompleted() {
+        tasks = tasks.filter((task) => !task.completed);
+        renderTasks();
+      }
+      function clearActive() {
+        tasks = tasks.filter((task) => task.completed);
+        renderTasks();
+      }
+      function clearAll() {
+        tasks = [];
+        renderTasks();
+      }
+      // this is the fitler button on click
+      function setFilter(filter, button) {
+        currentFilter = filter;
+        document
+          .querySelectorAll(".filter-btn")
+          .forEach((btn) => btn.classList.remove("active"));
+        button.classList.add("active");
+        renderTasks();
+      }
+      // this is used to analyze the board on how the score works on the daily task, the compleded compared to the total
+      function updateStats() {
+        const completedCount = tasks.filter((t) => t.completed).length;
+        document.getElementById("taskStats").innerText =
+          `${completedCount} of ${tasks.length} tasks completed`;
+      }
+
+      function saveTasks() {
+        localStorage.setItem("dailyTasksList", JSON.stringify(tasks));
+      }
+      //scan for skechy string like <,>....( this is the actual function so that we can use teh escapehtml function )
+      function escapeHtml(str) {
+        return str
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#039;");
+      }
+      //used to input the text when user press enter instead of add tas
+      document
+        .getElementById("taskInput")
+        .addEventListener("keypress", function (e) {
+          if (e.key === "Enter") addTask();
+        });
+
+      renderTasks();
+    </script>
+  </body>
+</html>
